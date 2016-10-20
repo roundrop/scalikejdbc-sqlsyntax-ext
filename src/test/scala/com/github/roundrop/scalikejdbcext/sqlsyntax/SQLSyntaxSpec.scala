@@ -1,4 +1,4 @@
-package com.github.roundrop.scalikejdbcext
+package com.github.roundrop.scalikejdbcext.sqlsyntax
 
 import org.scalatest._
 import scalikejdbc.interpolation._

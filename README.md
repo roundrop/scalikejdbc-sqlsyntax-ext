@@ -22,7 +22,7 @@ ScalikeJDBC SQLSyntax Extension: eq/ne/like with ignore case, and more.
 ## Examples
 
 ```scala
-import import com.github.roundrop.scalikejdbcext._
+import com.github.roundrop.scalikejdbcext.sqlsyntax._
 
 // eq with ignore case
 Tag.where(sqls.eqIgnoreCase(column.name, name))...

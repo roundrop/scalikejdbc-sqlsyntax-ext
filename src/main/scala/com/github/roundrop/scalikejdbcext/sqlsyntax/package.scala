@@ -1,8 +1,8 @@
-package com.github.roundrop
+package com.github.roundrop.scalikejdbcext
 
 import _root_.scalikejdbc._
 
-package object scalikejdbcext {
+package object sqlsyntax {
 
   /*
    * Convenience SQLSyntax
