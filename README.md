@@ -39,7 +39,7 @@ Article.countBy(sqls.likeIgnoreCase(column.title, "%abc%").or.likeIgnoreCase(col
 #### Sbt
 
 ```scala
-libraryDependencies += "com.github.roundrop" %% "scalikejdbc-sqlsyntax-ext" % "1.0.0"
+libraryDependencies += "com.github.roundrop" %% "scalikejdbc-sqlsyntax-ext" % "1.1.+"
 ```
 
 #### Maven
@@ -47,7 +47,7 @@ libraryDependencies += "com.github.roundrop" %% "scalikejdbc-sqlsyntax-ext" % "1
 ```xml
 <dependency>
     <groupId>com.github.roundrop</groupId>
-    <artifactId>scalikejdbc-sqlsyntax-ext_2.11</artifactId>
-    <version>1.0.0</version>
+    <artifactId>scalikejdbc-sqlsyntax-ext_2.12</artifactId>
+    <version>[1.1,)</version>
 </dependency>
 ```
