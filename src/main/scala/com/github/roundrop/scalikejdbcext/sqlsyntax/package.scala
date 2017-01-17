@@ -39,7 +39,7 @@ package object sqlsyntax {
     def startsWith(column: SQLSyntax, value: String): SQLSyntax = sqls"${underlying} ${column} like ${value} || '%'"
     def endsWith(column: SQLSyntax, value: String): SQLSyntax = sqls"${underlying} ${column} like '%' || ${value}"
   }
-  implicit class ConvenienceSQLSyntax_(s: SQLSyntax.type) {
+  implicit class ConvenienceSQLSyntax_(private val s: SQLSyntax.type) extends AnyVal {
     def eqIgnoreCase[A: ParameterBinderFactory](column: SQLSyntax, value: A): SQLSyntax = SQLSyntax.empty.eqIgnoreCase(column, value)
     def neIgnoreCase[A: ParameterBinderFactory](column: SQLSyntax, value: A): SQLSyntax = SQLSyntax.empty.neIgnoreCase(column, value)
     def likeIgnoreCase(column: SQLSyntax, value: String): SQLSyntax = SQLSyntax.empty.likeIgnoreCase(column, value)
