@@ -1,4 +1,5 @@
 # ScalikeJDBC SQLSyntax Extension
+[![Build Status](https://travis-ci.org/roundrop/scalikejdbc-sqlsyntax-ext.svg?branch=master)](https://travis-ci.org/roundrop/scalikejdbc-sqlsyntax-ext)
 
 ScalikeJDBC SQLSyntax Extension: eq/ne/like with ignore case, and more.
 
