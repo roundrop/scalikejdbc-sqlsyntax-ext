@@ -1,6 +1,7 @@
 package com.github.roundrop.scalikejdbcext.sqlsyntax
 
 import org.scalatest._
+import scalikejdbc.LikeConditionEscapeUtil
 import scalikejdbc.interpolation._
 
 class SQLSyntaxSpec extends FlatSpec with Matchers {
@@ -8,128 +9,118 @@ class SQLSyntaxSpec extends FlatSpec with Matchers {
   import Implicits._
 
 
-  /* eqIgnoreCase */
+  /* ieq */
 
-  it should "have #eqIgnoreCase" in {
-    val s = SQLSyntax.eqIgnoreCase(sqls"title", "abc")
+  it should "have #ieq" in {
+    val s = SQLSyntax.ieq(sqls"title", "abc")
     s.value should equal(" LOWER(title) = LOWER(?)")
     s.parameters should equal(Seq("abc"))
   }
 
-  it should "have #eqIgnoreCase for null values" in {
-    val s = SQLSyntax.eqIgnoreCase(sqls"title", null)
+  it should "have #ieq for null values" in {
+    val s = SQLSyntax.ieq(sqls"title", null)
     s.value should equal(" LOWER(title) is null")
     s.parameters should equal(Nil)
   }
 
-  it should "have #eqIgnoreCase for None values" in {
-    val s = SQLSyntax.eqIgnoreCase(sqls"title", None)
+  it should "have #ieq for None values" in {
+    val s = SQLSyntax.ieq(sqls"title", None)
     s.value should equal(" LOWER(title) is null")
     s.parameters should equal(Nil)
   }
 
-  it should "have eqIgnoreCase" in {
-    val s = SQLSyntax.eq(sqls"no", 123).and.eqIgnoreCase(sqls"title", "abc")
+  it should "have ieq" in {
+    val s = SQLSyntax.eq(sqls"no", 123).and.ieq(sqls"title", "abc")
     s.value should equal(" no = ? and LOWER(title) = LOWER(?)")
     s.parameters should equal(Seq(123, "abc"))
   }
 
 
-  /* neIgnoreCase */
+  /* ine */
 
-  it should "have #neIgnoreCase" in {
-    val s = SQLSyntax.neIgnoreCase(sqls"title", "abc")
+  it should "have #ine" in {
+    val s = SQLSyntax.ine(sqls"title", "abc")
     s.value should equal(" LOWER(title) <> LOWER(?)")
     s.parameters should equal(Seq("abc"))
   }
 
-  it should "have #neIgnoreCase for null values" in {
-    val s = SQLSyntax.neIgnoreCase(sqls"title", null)
+  it should "have #ine for null values" in {
+    val s = SQLSyntax.ine(sqls"title", null)
     s.value should equal(" LOWER(title) is not null")
     s.parameters should equal(Nil)
   }
 
-  it should "have #neIgnoreCase for None values" in {
-    val s = SQLSyntax.neIgnoreCase(sqls"title", None)
+  it should "have #ine for None values" in {
+    val s = SQLSyntax.ine(sqls"title", None)
     s.value should equal(" LOWER(title) is not null")
     s.parameters should equal(Nil)
   }
 
-  it should "have neIgnoreCase" in {
-    val s = SQLSyntax.eq(sqls"no", 123).and.neIgnoreCase(sqls"title", "abc")
+  it should "have ine" in {
+    val s = SQLSyntax.eq(sqls"no", 123).and.ine(sqls"title", "abc")
     s.value should equal(" no = ? and LOWER(title) <> LOWER(?)")
     s.parameters should equal(Seq(123, "abc"))
   }
 
 
-  /* likeIgnoreCase */
+  /* ilike */
 
-  it should "have #likeIgnoreCase" in {
-    val s = SQLSyntax.likeIgnoreCase(sqls"title", "%abc%")
+  it should "have #ilike" in {
+    val s = SQLSyntax.ilike(sqls"title", "%abc%")
     s.value should equal(" LOWER(title) like LOWER(?)")
     s.parameters should equal(Seq("%abc%"))
   }
 
-  it should "have likeIgnoreCase" in {
-    val s = SQLSyntax.eq(sqls"no", 123).and.likeIgnoreCase(sqls"title", "%abc%")
+  it should "have ilike" in {
+    val s = SQLSyntax.eq(sqls"no", 123).and.ilike(sqls"title", "%abc%")
     s.value should equal(" no = ? and LOWER(title) like LOWER(?)")
     s.parameters should equal(Seq(123, "%abc%"))
   }
 
-  /* notLikeIgnoreCase */
+  /* notILike */
 
-  it should "have #notLikeIgnoreCase" in {
-    val s = SQLSyntax.notLikeIgnoreCase(sqls"title", "%abc%")
+  it should "have #notILike" in {
+    val s = SQLSyntax.notILike(sqls"title", "%abc%")
     s.value should equal(" LOWER(title) not like LOWER(?)")
     s.parameters should equal(Seq("%abc%"))
   }
 
-  it should "have notLikeIgnoreCase" in {
-    val s = SQLSyntax.eq(sqls"no", 123).and.notLikeIgnoreCase(sqls"title", "%abc%")
+  it should "have notILike" in {
+    val s = SQLSyntax.eq(sqls"no", 123).and.notILike(sqls"title", "%abc%")
     s.value should equal(" no = ? and LOWER(title) not like LOWER(?)")
     s.parameters should equal(Seq(123, "%abc%"))
   }
 
-  /* contains */
+  /* escape */
 
-  it should "have #contains" in {
-    val s = SQLSyntax.contains(sqls"title", "abc")
-    s.value should equal(" title like '%' || ? || '%'")
-    s.parameters should equal(Seq("abc"))
+  val escapeChar = "!"
+  val util = LikeConditionEscapeUtil(escapeChar)
+
+  it should "like with escape" in {
+    val v = util.contains("foo%aa_bbb\\ccc!")
+    val s = SQLSyntax.like(sqls"title", v).escape(escapeChar)
+    s.value should equal(" title like ? ESCAPE ?")
+    s.parameters should equal(Seq("%foo!%aa!_bbb\\ccc!!%", "!"))
   }
 
-  it should "have contains" in {
-    val s = SQLSyntax.eq(sqls"no", 123).and.contains(sqls"title", "abc")
-    s.value should equal(" no = ? and title like '%' || ? || '%'")
-    s.parameters should equal(Seq(123, "abc"))
+  it should "notLike with escape" in {
+    val v = util.contains("foo%aa_bbb\\ccc!")
+    val s = SQLSyntax.notLike(sqls"title", v).escape(escapeChar)
+    s.value should equal(" title not like ? ESCAPE ?")
+    s.parameters should equal(Seq("%foo!%aa!_bbb\\ccc!!%", "!"))
   }
 
-  /* startsWith */
-
-  it should "have #startsWith" in {
-    val s = SQLSyntax.startsWith(sqls"title", "abc")
-    s.value should equal(" title like ? || '%'")
-    s.parameters should equal(Seq("abc"))
+  it should "ilike with escape" in {
+    val v = util.contains("foo%aa_bbb\\ccc!")
+    val s = SQLSyntax.ilike(sqls"title", v).escape(escapeChar)
+    s.value should equal(" LOWER(title) like LOWER(?) ESCAPE ?")
+    s.parameters should equal(Seq("%foo!%aa!_bbb\\ccc!!%", "!"))
   }
 
-  it should "have startsWith" in {
-    val s = SQLSyntax.eq(sqls"no", 123).and.startsWith(sqls"title", "abc")
-    s.value should equal(" no = ? and title like ? || '%'")
-    s.parameters should equal(Seq(123, "abc"))
+  it should "notILike with escape" in {
+    val v = util.contains("foo%aa_bbb\\ccc!")
+    val s = SQLSyntax.notILike(sqls"title", v).escape(escapeChar)
+    s.value should equal(" LOWER(title) not like LOWER(?) ESCAPE ?")
+    s.parameters should equal(Seq("%foo!%aa!_bbb\\ccc!!%", "!"))
   }
-
-  /* endsWith */
-
-  it should "have #endsWith" in {
-    val s = SQLSyntax.endsWith(sqls"title", "abc")
-    s.value should equal(" title like '%' || ?")
-    s.parameters should equal(Seq("abc"))
-  }
-
-  it should "have endsWith" in {
-    val s = SQLSyntax.eq(sqls"no", 123).and.endsWith(sqls"title", "abc")
-    s.value should equal(" no = ? and title like '%' || ?")
-    s.parameters should equal(Seq(123, "abc"))
-  }
-
 }

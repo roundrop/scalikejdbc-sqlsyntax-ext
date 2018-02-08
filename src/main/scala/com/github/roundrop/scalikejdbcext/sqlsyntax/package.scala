@@ -1,52 +1,57 @@
 package com.github.roundrop.scalikejdbcext
 
 import _root_.scalikejdbc._
+import scalikejdbc.interpolation.SQLSyntax
 
 package object sqlsyntax {
 
   /*
-   * Convenience SQLSyntax
+   * ScalikeJDBC SQLSyntax Extension
    *
-   * - case insensitivity
-   * sqls.eqIgnoreCase(column.title, "abc")         =>  LOWER(title) = LOWER('abc')
-   * sqls.neIgnoreCase(column.title, "abc")         =>  LOWER(title) <> LOWER('abc')
+   * - Case insensitivity
+   *   sqls.ieq(column.title, "abc")         =>  LOWER(title) = LOWER('abc')
+   *   sqls.ine(column.title, "abc")         =>  LOWER(title) <> LOWER('abc')
+   *   sqls.ilike(column.title, "%abc%")     =>  LOWER(title) LIKE LOWER('%abc%')
+   *   sqls.notILike(column.title, "%abc%")  =>  LOWER(title) NOT LIKE LOWER('%abc%')
    *
-   * sqls.likeIgnoreCase(column.title, "%abc%")     =>  LOWER(title) LIKE LOWER('%abc%')
-   * sqls.notLikeIgnoreCase(column.title, "%abc%")  =>  LOWER(title) NOT LIKE LOWER('%abc%')
+   * - Escaping operands with the LIKE predicate
+   * Often, your pattern may contain any of the wildcard characters "_" and "%", in case of which you may want to escape them.
+   * ScalikeJDBC does not automatically escape patterns in like() and notLike() methods. Instead, you can explicitly define an escape character as such:
    *
-   * - shortcut methods using the LIKE predicate
-   * sqls.contains(column.title, "abc")             =>  title LIKE '%' || 'abc' || '%'
-   * sqls.startsWith(column.title, "abc")           =>  title LIKE 'abc' || '%'
-   * sqls.endsWith(column.title, "abc")             =>  title LIKE '%' || 'abc'
+   *   sqls.like(column.title, "%#%0D#%0A%").escape("#")     => title LIKE '%#%0D#%0A%' ESCAPE '#'
+   *   sqls.notLike(column.title, "%#%0D#%0A%").escape("#")  => title NOT LIKE '%#%0D#%0A%' ESCAPE '#'
+   *   sqls.ilike(column.title, "%#%0D#%0A%").escape("#")    => LOWER(title) LIKE LOWER('%#%0D#%0A%') ESCAPE '#'
+   *   sqls.notILike(column.title, "%#%0D#%0A%").escape("#") => LOWER(title) NOT LIKE LOWER('%#%0D#%0A%') ESCAPE '#'
    *
    */
   implicit class ConvenienceSQLSyntax(val underlying: SQLSyntax) extends AnyVal {
-    def eqIgnoreCase[A](column: SQLSyntax, value: A)(implicit ev: ParameterBinderFactory[A]): SQLSyntax = {
+    def ieq[A](column: SQLSyntax, value: A)(implicit ev: ParameterBinderFactory[A]): SQLSyntax = {
       value match {
-        case null | None => sqls"${underlying} LOWER(${column}) is null"
-        case _ => sqls"${underlying} LOWER(${column}) = LOWER(${ev(value)})"
+        case null | None => sqls"$underlying LOWER($column) is null"
+        case _ => sqls"$underlying LOWER($column) = LOWER(${ev(value)})"
       }
     }
-    def neIgnoreCase[A](column: SQLSyntax, value: A)(implicit ev: ParameterBinderFactory[A]): SQLSyntax = {
+    def ine[A](column: SQLSyntax, value: A)(implicit ev: ParameterBinderFactory[A]): SQLSyntax = {
       value match {
-        case null | None => sqls"${underlying} LOWER(${column}) is not null"
-        case _ => sqls"${underlying} LOWER(${column}) <> LOWER(${ev(value)})"
+        case null | None => sqls"$underlying LOWER($column) is not null"
+        case _ => sqls"$underlying LOWER($column) <> LOWER(${ev(value)})"
       }
     }
-    def likeIgnoreCase(column: SQLSyntax, value: String): SQLSyntax = sqls"${underlying} LOWER(${column}) like LOWER(${value})"
-    def notLikeIgnoreCase(column: SQLSyntax, value: String): SQLSyntax = sqls"${underlying} LOWER(${column}) not like LOWER(${value})"
-    def contains(column: SQLSyntax, value: String): SQLSyntax = sqls"${underlying} ${column} like '%' || ${value} || '%'"
-    def startsWith(column: SQLSyntax, value: String): SQLSyntax = sqls"${underlying} ${column} like ${value} || '%'"
-    def endsWith(column: SQLSyntax, value: String): SQLSyntax = sqls"${underlying} ${column} like '%' || ${value}"
+
+    def ilike(column: SQLSyntax, value: String): SQLSyntax = sqls"$underlying LOWER($column) like LOWER($value)"
+    def notILike(column: SQLSyntax, value: String): SQLSyntax = sqls"$underlying LOWER($column) not like LOWER($value)"
+
+    def escape(escapeChar: String): SQLSyntax = sqls"$underlying ESCAPE $escapeChar"
   }
+
   implicit class ConvenienceSQLSyntax_(private val s: SQLSyntax.type) extends AnyVal {
-    def eqIgnoreCase[A: ParameterBinderFactory](column: SQLSyntax, value: A): SQLSyntax = SQLSyntax.empty.eqIgnoreCase(column, value)
-    def neIgnoreCase[A: ParameterBinderFactory](column: SQLSyntax, value: A): SQLSyntax = SQLSyntax.empty.neIgnoreCase(column, value)
-    def likeIgnoreCase(column: SQLSyntax, value: String): SQLSyntax = SQLSyntax.empty.likeIgnoreCase(column, value)
-    def notLikeIgnoreCase(column: SQLSyntax, value: String): SQLSyntax = SQLSyntax.empty.notLikeIgnoreCase(column, value)
-    def contains(column: SQLSyntax, value: String): SQLSyntax = SQLSyntax.empty.contains(column, value)
-    def startsWith(column: SQLSyntax, value: String): SQLSyntax = SQLSyntax.empty.startsWith(column, value)
-    def endsWith(column: SQLSyntax, value: String): SQLSyntax = SQLSyntax.empty.endsWith(column, value)
+    def ieq[A: ParameterBinderFactory](column: SQLSyntax, value: A): SQLSyntax = SQLSyntax.empty.ieq(column, value)
+    def ine[A: ParameterBinderFactory](column: SQLSyntax, value: A): SQLSyntax = SQLSyntax.empty.ine(column, value)
+
+    def ilike(column: SQLSyntax, value: String): SQLSyntax = SQLSyntax.empty.ilike(column, value)
+    def notILike(column: SQLSyntax, value: String): SQLSyntax = SQLSyntax.empty.notILike(column, value)
+
+    def escape(escapeChar: String): SQLSyntax = SQLSyntax.empty.escape(escapeChar)
   }
 
 }
